@@ -87,10 +87,10 @@ class DiscreteDistribution(dict):
         if flag:
             return
 
-        the_sum = self.total()
+        theSum = self.total()
 
         for key in self.keys():
-            self[key] = self[key] / the_sum
+            self[key] = self[key] / theSum
 
     def sample(self):
         """
@@ -115,20 +115,20 @@ class DiscreteDistribution(dict):
         """
         "*** YOUR CODE HERE ***"
 
-        a_copy = self.copy()
-        a_copy.normalize()
-        items = sorted(a_copy.items())
+        aCopy = self.copy()
+        aCopy.normalize()
+        items = sorted(aCopy.items())
         keys = [x[0] for x in items]
         vals = [x[1] for x in items]
 
         randomVal = random.random()
 
-        the_sum = vals[0]
+        theSum = vals[0]
         i = 0
 
-        while the_sum < randomVal :
+        while theSum < randomVal :
             i += 1
-            the_sum += vals[i]
+            theSum += vals[i]
 
         return keys[i]
 
@@ -321,16 +321,16 @@ class ExactInference(InferenceModule):
         "*** YOUR CODE HERE ***"
 
 
-        beliefs_copy = DiscreteDistribution()
+        beliefsCopy = DiscreteDistribution()
         pacmanPos = gameState.getPacmanPosition()
         jailPos = self.getJailPosition()
         ghostPosList = self.allPositions
 
         for pos in ghostPosList:
-            beliefs_copy[pos] = self.beliefs[pos]*self.getObservationProb(observation, pacmanPos, pos, jailPos)
+            beliefsCopy[pos] = self.beliefs[pos]*self.getObservationProb(observation, pacmanPos, pos, jailPos)
 
-        beliefs_copy.normalize()
-        self.beliefs = beliefs_copy
+        beliefsCopy.normalize()
+        self.beliefs = beliefsCopy
 
     def predict(self, gameState):
         """
@@ -343,17 +343,17 @@ class ExactInference(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
 
-        beliefs_copy = DiscreteDistribution()
+        beliefsCopy = DiscreteDistribution()
         ghostPosList = self.allPositions
 
         for oldPos in ghostPosList:
             if self.beliefs[oldPos] > 0:
                 newPosDist = self.getPositionDistribution(gameState, oldPos)
                 for newPos, distri in newPosDist.items():
-                    beliefs_copy[newPos] += self.beliefs[oldPos] * distri
+                    beliefsCopy[newPos] += self.beliefs[oldPos] * distri
 
-        beliefs_copy.normalize()
-        self.beliefs = beliefs_copy
+        beliefsCopy.normalize()
+        self.beliefs = beliefsCopy
 
     def getBeliefDistribution(self):
         return self.beliefs
