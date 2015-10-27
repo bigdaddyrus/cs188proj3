@@ -394,8 +394,6 @@ class ParticleFilter(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
 
-        #self.getObservationProb(observation, pacmanPos, ghostPos, jailPos)
-
         pacmanPos = gameState.getPacmanPosition()
         jailPos = self.getJailPosition()
         beliefsCopy = DiscreteDistribution()
@@ -522,7 +520,7 @@ class JointParticleFilter(ParticleFilter):
             temp = 1
             for i in range(self.numGhosts):
                 jailPos = self.getJailPosition(i)
-                temp *= self.getObservationProb(observation, pacmanPos, pos[i], jailPos)
+                temp *= self.getObservationProb(observation[i], pacmanPos, pos[i], jailPos)
 
             beliefsCopy[pos] = beliefs[pos]*temp
 
