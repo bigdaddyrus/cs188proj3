@@ -201,6 +201,7 @@ class InferenceModule:
         """
         "*** YOUR CODE HERE ***"
 
+        #special cases handling: if ghost in jail, noisydistance is None
         if ghostPosition == jailPosition:
             if noisyDistance == None:
                 return 1
@@ -210,6 +211,7 @@ class InferenceModule:
             if noisyDistance == None:
                 return 0
             else:
+                #P(noisyDistance | pacmanPosition, ghostPosition) = #P(noisyDistance | trueDistance)
                 trueDistance = manhattanDistance(ghostPosition, pacmanPosition)
                 return busters.getObservationProbability(noisyDistance, trueDistance)
 
@@ -327,6 +329,7 @@ class ExactInference(InferenceModule):
         ghostPosList = self.allPositions
 
         for pos in ghostPosList:
+            #update the beliefs
             beliefsCopy[pos] = self.beliefs[pos]*self.getObservationProb(observation, pacmanPos, pos, jailPos)
 
         beliefsCopy.normalize()
@@ -347,9 +350,10 @@ class ExactInference(InferenceModule):
         ghostPosList = self.allPositions
 
         for oldPos in ghostPosList:
-            if self.beliefs[oldPos] > 0:
+            if self.beliefs[oldPos] != 0:
                 newPosDist = self.getPositionDistribution(gameState, oldPos)
                 for newPos, distri in newPosDist.items():
+                    #summation
                     beliefsCopy[newPos] += self.beliefs[oldPos] * distri
 
         beliefsCopy.normalize()
@@ -383,6 +387,7 @@ class ParticleFilter(InferenceModule):
         postionsLen = len(self.legalPositions)
         
         for i in range(self.numParticles):
+            #to distribute particles evenly across the positions
             self.particles.append(self.legalPositions[i%postionsLen])
 
     def update(self, observation, gameState):
@@ -402,6 +407,7 @@ class ParticleFilter(InferenceModule):
         for pos in self.particles:
             beliefsCopy[pos] = beliefs[pos]*self.getObservationProb(observation, pacmanPos, pos, jailPos)
 
+        #special case handling: all particles receive 0 weight
         if beliefsCopy.total() == 0:
             self.initializeUniformly(gameState)
             return
@@ -409,6 +415,7 @@ class ParticleFilter(InferenceModule):
         beliefsCopy.normalize()
         newParticalList = []
 
+        #resampling and constructing new particle list
         for i in range(self.numParticles):
             newParticalList.append(beliefsCopy.sample())
 
@@ -444,6 +451,7 @@ class ParticleFilter(InferenceModule):
         beliefs = DiscreteDistribution()
 
         for p in self.particles:
+            #count the amount of each particle
             beliefs[p] += 1
 
         beliefs.normalize()
@@ -475,12 +483,16 @@ class JointParticleFilter(ParticleFilter):
         "*** YOUR CODE HERE ***"
 
         self.particles = []
+
+        #calculate the cartesian product
         cartesianProducts = list(itertools.product(self.legalPositions, repeat=self.numGhosts))
 
+        #shuffle the permutation
         random.shuffle(cartesianProducts)
         productSetLen = len(cartesianProducts)
 
         for i in range(self.numParticles):
+            #distribute the particles evenly
             self.particles.append(cartesianProducts[i%productSetLen])
 
 
@@ -519,12 +531,14 @@ class JointParticleFilter(ParticleFilter):
         for pos in self.particles:
             temp = 1
             for i in range(self.numGhosts):
+                #loop through the ghosts and respective jail positions
                 jailPos = self.getJailPosition(i)
                 temp *= self.getObservationProb(observation[i], pacmanPos, pos[i], jailPos)
 
             beliefsCopy[pos] = beliefs[pos]*temp
 
 
+        #special case handling: all particles are weighted 0
         if beliefsCopy.total() == 0:
             self.initializeUniformly(gameState)
             return
@@ -547,8 +561,7 @@ class JointParticleFilter(ParticleFilter):
 
             # now loop through and update each entry in newParticle...
             "*** YOUR CODE HERE ***"
-            prevGhostPositions = list(newParticle) #pick one
-            prevGhostPositions = list(oldParticle) #pick one
+            prevGhostPositions = list(oldParticle)
 
             for i in range(self.numGhosts):
                 newPosDist = self.getPositionDistribution(gameState, prevGhostPositions, i, self.ghostAgents[i])

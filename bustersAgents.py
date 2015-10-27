@@ -142,16 +142,12 @@ class GreedyBustersAgent(BustersAgent):
              if livingGhosts[i+1]]
         "*** YOUR CODE HERE ***"
 
-        #successorPosition = Actions.getSuccessor(position, action)
-        #mazeDis = self.distancer.getDistance(pos1, pos2)
-
-
         ghostCandidates = []
-        closestDis, minMazeDis = float('inf'), float('inf')
+        closestDis, minMazeDis = float('inf'), float('inf') #initialize them to worst value possible
         closestPos = None
         theAction = None
 
-
+        #find the closest ghost
         for oneSetDistri in livingGhostPositionDistributions:
             biggestDistriPos = oneSetDistri.argMax()
             mazeDis = self.distancer.getDistance(pacmanPosition, biggestDistriPos)
@@ -160,7 +156,7 @@ class GreedyBustersAgent(BustersAgent):
                 closestDis = mazeDis
                 closestPos = biggestDistriPos
 
-
+        #greedy approach: always seek for action with closest distance to get to the ghost
         for action in legal:
             successorPosition = Actions.getSuccessor(pacmanPosition, action)
             mazeDis = self.distancer.getDistance(successorPosition, closestPos)
