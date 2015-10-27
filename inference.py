@@ -379,11 +379,11 @@ class ParticleFilter(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
 
-        self.particleList = []
+        self.particles = []
         postionsLen = len(self.legalPositions)
         
         for i in range(self.numParticles):
-            self.particleList.append(self.legalPositions[i%postionsLen])
+            self.particles.append(self.legalPositions[i%postionsLen])
 
     def update(self, observation, gameState):
         """
@@ -401,7 +401,7 @@ class ParticleFilter(InferenceModule):
         beliefsCopy = DiscreteDistribution()
         beliefs = self.getBeliefDistribution()
 
-        for pos in self.particleList:
+        for pos in self.particles:
             beliefsCopy[pos] = beliefs[pos]*self.getObservationProb(observation, pacmanPos, pos, jailPos)
 
         if beliefsCopy.total() == 0:
@@ -414,7 +414,7 @@ class ParticleFilter(InferenceModule):
         for i in range(self.numParticles):
             newParticalList.append(beliefsCopy.sample())
 
-        self.particleList = newParticalList
+        self.particles = newParticalList
 
 
 
@@ -428,11 +428,11 @@ class ParticleFilter(InferenceModule):
 
         newParticalList = []
 
-        for pos in self.particleList:
+        for pos in self.particles:
             newPosDist = self.getPositionDistribution(gameState, pos)
             newParticalList.append(newPosDist.sample())
 
-        self.particleList = newParticalList
+        self.particles = newParticalList
 
 
     def getBeliefDistribution(self):
@@ -445,7 +445,7 @@ class ParticleFilter(InferenceModule):
 
         beliefs = DiscreteDistribution()
 
-        for p in self.particleList:
+        for p in self.particles:
             beliefs[p] += 1
 
         beliefs.normalize()
@@ -476,14 +476,14 @@ class JointParticleFilter(ParticleFilter):
         """
         "*** YOUR CODE HERE ***"
 
-        self.particleList = []
+        self.particles = []
         cartesianProducts = list(itertools.product(self.legalPositions, repeat=self.numGhosts))
 
         random.shuffle(cartesianProducts)
         productSetLen = len(cartesianProducts)
 
         for i in range(self.numParticles):
-            self.particleList.append(cartesianProducts[i%productSetLen])
+            self.particles.append(cartesianProducts[i%productSetLen])
 
 
 
@@ -514,6 +514,30 @@ class JointParticleFilter(ParticleFilter):
         """
         "*** YOUR CODE HERE ***"
 
+        pacmanPos = gameState.getPacmanPosition()
+        beliefsCopy = DiscreteDistribution()
+        beliefs = self.getBeliefDistribution()
+
+        for pos in self.particles:
+            temp = 1
+            for i in range(self.numGhosts):
+                jailPos = self.getJailPosition(i)
+                temp *= self.getObservationProb(observation, pacmanPos, pos[i], jailPos)
+
+            beliefsCopy[pos] = beliefs[pos]*temp
+
+
+        if beliefsCopy.total() == 0:
+            self.initializeUniformly(gameState)
+            return
+
+        #resample the entire list of particles
+        newParticalList = []
+        for i in range(self.numParticles):
+            newParticalList.append(beliefsCopy.sample())
+
+        self.particles = newParticalList
+
     def predict(self, gameState):
         """
         Sample each particle's next state based on its current state and the
@@ -525,6 +549,12 @@ class JointParticleFilter(ParticleFilter):
 
             # now loop through and update each entry in newParticle...
             "*** YOUR CODE HERE ***"
+            prevGhostPositions = list(newParticle) #pick one
+            prevGhostPositions = list(oldParticle) #pick one
+
+            for i in range(self.numGhosts):
+                newPosDist = self.getPositionDistribution(gameState, prevGhostPositions, i, self.ghostAgents[i])
+                newParticle[i] = newPosDist.sample()
 
             """*** END YOUR CODE HERE ***"""
             newParticles.append(tuple(newParticle))
