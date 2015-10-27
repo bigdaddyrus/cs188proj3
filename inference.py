@@ -379,6 +379,10 @@ class ParticleFilter(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
 
+        self.particleList = []
+        for i in range(self.numParticles):
+            self.particleList.append(self.legalPositions[i%len(self.legalPositions)])
+
     def update(self, observation, gameState):
         """
         Update beliefs based on the distance observation and Pacman's position.
@@ -387,6 +391,31 @@ class ParticleFilter(InferenceModule):
         tracking.
         """
         "*** YOUR CODE HERE ***"
+
+        #self.getObservationProb(observation, pacmanPos, ghostPos, jailPos)
+
+        pacmanPos = gameState.getPacmanPosition()
+        jailPos = self.getJailPosition()
+        beliefsCopy = DiscreteDistribution()
+        beliefs = self.getBeliefDistribution()
+
+        for pos in self.particleList:
+            beliefsCopy[pos] = beliefs[pos]*self.getObservationProb(observation, pacmanPos, pos, jailPos)
+
+        if beliefsCopy.total() == 0:
+            self.initializeUniformly(gameState)
+            return
+
+        beliefsCopy.normalize()
+        newParticalList = []
+        
+        for i in range(self.numParticles):
+            newParticalList.append(beliefsCopy.sample())
+
+        self.particleList = newParticalList
+
+
+
 
     def predict(self, gameState):
         """
@@ -403,6 +432,13 @@ class ParticleFilter(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
 
+        beliefs = DiscreteDistribution()
+
+        for p in self.particleList:
+            beliefs[p] += 1
+
+        beliefs.normalize()
+        return beliefs
 
 class JointParticleFilter(ParticleFilter):
     """
