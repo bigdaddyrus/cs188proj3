@@ -380,8 +380,10 @@ class ParticleFilter(InferenceModule):
         "*** YOUR CODE HERE ***"
 
         self.particleList = []
+        postionsLen = len(self.legalPositions)
+        
         for i in range(self.numParticles):
-            self.particleList.append(self.legalPositions[i%len(self.legalPositions)])
+            self.particleList.append(self.legalPositions[i%postionsLen])
 
     def update(self, observation, gameState):
         """
@@ -408,7 +410,7 @@ class ParticleFilter(InferenceModule):
 
         beliefsCopy.normalize()
         newParticalList = []
-        
+
         for i in range(self.numParticles):
             newParticalList.append(beliefsCopy.sample())
 
@@ -423,6 +425,15 @@ class ParticleFilter(InferenceModule):
         gameState.
         """
         "*** YOUR CODE HERE ***"
+
+        newParticalList = []
+
+        for pos in self.particleList:
+            newPosDist = self.getPositionDistribution(gameState, pos)
+            newParticalList.append(newPosDist.sample())
+
+        self.particleList = newParticalList
+
 
     def getBeliefDistribution(self):
         """
@@ -464,6 +475,17 @@ class JointParticleFilter(ParticleFilter):
         uniform prior.
         """
         "*** YOUR CODE HERE ***"
+
+        self.particleList = []
+        cartesianProducts = list(itertools.product(self.legalPositions, repeat=self.numGhosts))
+
+        random.shuffle(cartesianProducts)
+        productSetLen = len(cartesianProducts)
+
+        for i in range(self.numParticles):
+            self.particleList.append(cartesianProducts[i%productSetLen])
+
+
 
     def addGhostAgent(self, agent):
         """
