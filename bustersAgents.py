@@ -141,9 +141,9 @@ class GreedyBustersAgent(BustersAgent):
             [beliefs for i, beliefs in enumerate(self.ghostBeliefs)
              if livingGhosts[i+1]]
         "*** YOUR CODE HERE ***"
-
-        ghostCandidates = []
-        closestDis, minMazeDis = float('inf'), float('inf') #initialize them to worst value possible
+        
+        #initialize them to worst value possible
+        closestDis, minMazeDis = float('inf'), float('inf')
         closestPos = None
         theAction = None
 
