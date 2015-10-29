@@ -118,6 +118,7 @@ class DiscreteDistribution(dict):
         aCopy = self.copy()
         aCopy.normalize()
         items = sorted(aCopy.items())
+
         keys = [x[0] for x in items]
         vals = [x[1] for x in items]
 
@@ -432,12 +433,17 @@ class ParticleFilter(InferenceModule):
         "*** YOUR CODE HERE ***"
 
         newParticalList = []
+        posDistMem = {}
 
+        #use memorization to speed up
         for pos in self.particles:
-            newPosDist = self.getPositionDistribution(gameState, pos)
-            newParticalList.append(newPosDist.sample())
+            if not pos in posDistMem:
+                posDistMem[pos] = self.getPositionDistribution(gameState, pos)
+
+            newParticalList.append(posDistMem[pos].sample())
 
         self.particles = newParticalList
+
 
 
     def getBeliefDistribution(self):
